@@ -1,50 +1,37 @@
 package Server;
-
+import Messages.*;
+import com.google.gson.Gson;
 
 public class CommandHandler {
     private final JSONDatabase database;
-    private String command;
-    private int index;
-    private String text;
+    private final Request request;
 
-    public CommandHandler(String[] commandReceived, JSONDatabase database) {
-        this.command = commandReceived[0];
-        this.index = Integer.parseInt(commandReceived[1]);
-        if(commandReceived.length > 2) {
-            this.text = commandReceived[2];
-        }
+    public CommandHandler(Request request, JSONDatabase database) {
+        this.request = request;
         this.database = database;
     }
 
     public String run() {
-    String response = "ERROR";
-        if(checkIndex(index)) {
-            switch (command) {
-                case "get":
-                    response = database.get(index - 1);
-                    break;
-                case "set":
-                    response = database.set(index - 1, text);
-                    break;
-                case "delete":
-                    response = database.delete(index - 1);
-                    break;
-                case "exit":
-                    response =  "exit";
-                    break;
-                default:
-                    break;
-            }
+        String result;
+        Gson gson = new Gson();
+        switch (request.getType()) {
+            case "get":
+                result = database.get(request.getKey());
+                if ("ERROR".equals(result)) {
+                    return gson.toJson(new ErrorMessage("ERROR","No such key"));
+                }
+                return gson.toJson(new GetResponse("OK",result));
+            case "set":
+                database.set(request.getKey(),request.getValue());
+                return gson.toJson(new Response("OK"));
+            case "delete":
+                result = database.delete(request.getKey());
+                if("ERROR".equals(result)) {
+                    return gson.toJson(new ErrorMessage("ERROR","No such key"));
+                }
+                return gson.toJson(new Response("OK"));
+            default:
+                return gson.toJson(new ErrorMessage("ERROR","No such key"));
         }
-        return response;
     }
-
-
-    private boolean checkIndex(int index) {
-        if (index < 1 || index > 1000) {
-            return false;
-        }
-        return true;
-    }
-
 }

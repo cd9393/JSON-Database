@@ -2,12 +2,14 @@ package Client;
 
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
-
+import com.google.gson.Gson;
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
@@ -16,17 +18,17 @@ public class Main {
     @Parameter(names = "-t")
     String command;
 
-    @Parameter(names = "-i")
-    int index;
+    @Parameter(names = "-k")
+    String key;
 
-    @Parameter(names = "-m")
-    String text;
+    @Parameter(names = "-v")
+    String value;
 
     public static void main(String[] args) {
         Main main = new Main();
         JCommander.newBuilder().addObject(main).build().parse(args);
-        String request = main.toString();
-        main.runClient(request.replace("null",""));
+        String request = main.createJSON();
+        main.runClient(request);
 
     }
 
@@ -50,6 +52,17 @@ public class Main {
 
     @Override
     public String toString() {
-        return command + "," + index + "," + text;
+        return command + "," + key + "," + value;
+    }
+
+    private String createJSON() {
+        Map<String,String> commands = new HashMap<>();
+        commands.put("type",command);
+        commands.put("key",key);
+        if(!"null".equals(value)){
+            commands.put("value",value);
+        }
+        Gson gson = new Gson();
+        return gson.toJson(commands);
     }
 }

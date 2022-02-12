@@ -1,30 +1,28 @@
 package Server;
+import java.util.HashMap;
+import java.util.Map;
 
 public class JSONDatabase {
-    String[] database;
+   private Map<String, String> database;
 
     public JSONDatabase() {
-        this.database = new String[1000];
-        init();
+        this.database = new HashMap<>();
     }
 
-    public void init() {
-        for (int i = 0; i < this.database.length; i++) {
-            this.database[i] = "";
+    public String get(String key) {
+        return database.getOrDefault(key, "ERROR");
+    }
+
+    public String set(String key, String value) {
+        database.put(key,value);
+        return "OK";
+    }
+
+    public String delete(String key) {
+        if (database.containsKey(key)) {
+            database.remove(key);
+            return "OK";
         }
-    }
-
-    public String get(int index) {
-        return "".equals(this.database[index])? "ERROR" : this.database[index];
-    }
-
-    public String set(int index, String value) {
-        this.database[index] = value;
-        return "OK";
-    }
-
-    public String delete(int index) {
-        this.database[index] = "";
-        return "OK";
+        return "ERROR";
     }
 }
