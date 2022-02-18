@@ -15,4 +15,6 @@ Stage Four Description [here](https://github.com/cd9393/JSON-Database/tree/stage
 
 Stage Five Description [here](https://github.com/cd9393/JSON-Database/tree/stageFive#json-database)
 
+Stage Six Description [here](https://github.com/cd9393/JSON-Database/tree/stageSix#json-database)
+
 
