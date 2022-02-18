@@ -1,18 +1,20 @@
 package Server;
+
 import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
 
 import java.io.*;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class JSONDatabase {
-    private Map<String, String> database;
+    private JsonObject database;
     private final String DB_FILE_PATH = "src/server/data/db.json";
     private final ReadWriteLock lock = new ReentrantReadWriteLock();
     private final Lock readLock = lock.readLock();
@@ -20,38 +22,59 @@ public class JSONDatabase {
     private final Gson gson = new Gson();
 
     public JSONDatabase() {
-        this.database = new HashMap<>();
-    }
-
-    public String get(String key) {
         readDBFile();
-        return database.getOrDefault(key, "ERROR");
     }
 
-    public String set(String key, String value) {
-        database.put(key,value);
+    public JsonElement get(JsonElement key) {
+        readDBFile();
+        if(key.isJsonPrimitive() && database.has(key.getAsString())) {
+            return database.get(key.getAsString());
+        } else if (key.isJsonArray()) {
+            return findElement(key.getAsJsonArray(), false);
+        }
+        return null;
+    }
+
+
+    public String set(JsonElement key, JsonElement value) {
+        if (database.isJsonNull()) {
+            database = new JsonObject();
+            database.add(key.getAsString(),value);
+        } else {
+            if (key.isJsonPrimitive()) {
+                database.add(key.getAsString(),value);
+            }
+            else if (key.isJsonArray()){
+                JsonArray keys = key.getAsJsonArray();
+                String toAdd = keys.remove(keys.size() - 1).getAsString();
+                findElement(keys, true).getAsJsonObject().add(toAdd, value);
+            }
+        }
         writeDBFile();
         return "OK";
     }
 
-    public String delete(String key) {
-        if (database.containsKey(key)) {
-            database.remove(key);
+    public String delete(JsonElement key) {
+        if (key.isJsonPrimitive() && database.has(key.getAsString())){
+            database.remove(key.getAsString());
+            writeDBFile();
+        }
+        else if (key.isJsonArray()){
+            JsonArray keys = key.getAsJsonArray();
+            String toDelete = keys.remove(keys.size() - 1).getAsString();
+            findElement(keys, true).getAsJsonObject().remove(toDelete);
             writeDBFile();
             return "OK";
         }
         return "ERROR";
     }
 
-    public void setDatabase(Map<String, String> database) {
-        this.database = database;
-    }
 
     private void readDBFile() {
         Path path = new File(DB_FILE_PATH).toPath();
         readLock.lock();
         try(Reader reader = Files.newBufferedReader(path, StandardCharsets.UTF_8)) {
-            setDatabase(gson.fromJson(reader,Map.class));
+            database = gson.fromJson(reader,JsonObject.class);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -70,5 +93,25 @@ public class JSONDatabase {
             e.printStackTrace();
         }
         writeLock.unlock();
+    }
+
+    private JsonElement findElement(JsonArray keys, boolean createIfDoesntExist) {
+        JsonElement result = database;
+        if(createIfDoesntExist) {
+            for(JsonElement key : keys) {
+                if(!result.getAsJsonObject().has(key.getAsString())) {
+                    result.getAsJsonObject().add(key.getAsString(),new JsonObject());
+                }
+                result = result.getAsJsonObject().get(key.getAsString());
+            }
+        } else {
+            for(JsonElement key : keys) {
+                if(!key.isJsonPrimitive() || !result.getAsJsonObject().has(key.getAsString())) {
+
+                }
+                result = result.getAsJsonObject().get(key.getAsString());
+            }
+        }
+        return result;
     }
 }

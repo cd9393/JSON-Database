@@ -1,9 +1,9 @@
 package Client;
 
-import Messages.Request;
 import com.beust.jcommander.JCommander;
 import com.beust.jcommander.Parameter;
 import com.google.gson.Gson;
+import Messages.Request;
 
 import java.io.*;
 import java.net.Socket;
@@ -11,6 +11,8 @@ import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.HashMap;
+import java.util.Map;
 
 public class Main {
 
@@ -65,14 +67,11 @@ public class Main {
     }
 
     private String createJSON() {
-        Request request;
-        if(!"null".equals(value)){
-            request = new Request(command,key,value);
-        } else {
-            request = new Request(command,key);
-        }
-        Gson gson = new Gson();
-        return gson.toJson(request);
+        Map<String, String> request = new HashMap<>();
+        request.put("type",command);
+        request.put("key",key);
+        request.put("value",value);
+        return new Gson().toJson(request);
     }
 
     private String readJSONFromFile() {

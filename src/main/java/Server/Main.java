@@ -14,7 +14,7 @@ public class Main {
 
     public static void main(String[] args) throws IOException {
         System.out.println("Server started!");
-        try(ServerSocket server = new ServerSocket(PORT, 50,InetAddress.getByName("127.0.0.1"))) {
+        try(ServerSocket server = new ServerSocket(PORT, 50, InetAddress.getByName("127.0.0.1"))) {
             while(true){
                 Socket client = server.accept();
                 ClientHandler clientHandler = new ClientHandler(client,server,database);

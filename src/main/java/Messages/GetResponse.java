@@ -1,10 +1,18 @@
 package Messages;
 
-public class GetResponse extends Response{
-    private final String value;
 
-    public GetResponse(String response, String value) {
+import com.google.gson.JsonElement;
+
+public class GetResponse extends Response{
+    private final JsonElement value;
+
+    public GetResponse(String response, JsonElement value) {
         super(response);
         this.value = value;
+    }
+
+    public GetResponse(String response) {
+        super(response);
+        this.value = null;
     }
 }

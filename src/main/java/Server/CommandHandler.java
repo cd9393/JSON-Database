@@ -1,6 +1,7 @@
 package Server;
 import Messages.*;
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 
 public class CommandHandler {
     private final JSONDatabase database;
@@ -16,11 +17,11 @@ public class CommandHandler {
         Gson gson = new Gson();
         switch (request.getType()) {
             case "get":
-                result = database.get(request.getKey());
-                if ("ERROR".equals(result)) {
+                JsonElement getResult = database.get(request.getKey());
+                if (getResult == null) {
                     return gson.toJson(new ErrorMessage("ERROR","No such key"));
                 }
-                return gson.toJson(new GetResponse("OK",result));
+                return gson.toJson(new GetResponse("OK",getResult));
             case "set":
                 database.set(request.getKey(),request.getValue());
                 return gson.toJson(new Response("OK"));
